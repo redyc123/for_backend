@@ -77,7 +77,7 @@ async def main(message: types.Message):
 
 @dp.message_handler(commands="start")
 async def main(message: types.Message):
-    #print(type(message["from"]["id"]))
+    print(message)
     user_id = str(message["from"]["id"])
     try:
         user_in_db = await user.read_table(user_id)
@@ -92,7 +92,8 @@ async def main(message: types.Message):
     ]
     current_kb.append(kb[0])
     keyboard = types.ReplyKeyboardMarkup(keyboard=kb)
-    await message.answer("Это бот для просмотра цен криптовалют", reply_markup=keyboard)
+    user_name = message['from']["first_name"]
+    await message.answer(f"Привет {user_name}, мой бот создан для просмотра цен криптовалют", reply_markup=keyboard)
 
 @dp.message_handler()
 async def messsage(message: types.Message):
