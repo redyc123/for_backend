@@ -52,16 +52,18 @@ class User():
         text = ""
         if command == "/change_bitcoin":
             if str(user[1]) == "0":
-                user[1] = "1" 
+                user[1] = "1"
+                text = "bitcoin включен"
             else:
                 (user[1]) = "0"
-            text = "bitcoin изменен"
+                text = "bitcoin отключен"
         if command == "/change_ethereum":
             if str(user[2]) == "0":
                 user[2] = "1" 
+                text = "ethereum включен"
             else:
                 user[2] = "0"
-            text = "ethereum изменен"
+                text = "ethereum отключен"
         print(user)
         await self.update_user_db(user[0], user[1], user[2])
 
