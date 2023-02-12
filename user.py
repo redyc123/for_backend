@@ -14,6 +14,8 @@ class User():
     eth = '1'
     ban_time = 0
 
+    history = ""
+
     async def read_table(self, user_id):
         cur = self.conn.cursor()
         cur.execute(f"SELECT * FROM users WHERE user_id={user_id};")
@@ -25,24 +27,28 @@ class User():
         cur.execute("""CREATE TABLE IF NOT EXISTS users(
                         user_id INT PRIMARY KEY,
                         btc INT,
-                        eth INT);
+                        eth INT,
+                        banned INT,
+                        ban_time INT,
+                        history STR,
+                        count INT);
                         """)
         self.conn.commit()
 
-    async def add_user_db(self, user_id, btc = btc, eth = eth):
-        user = (user_id, btc, eth)
+    async def add_user_db(self, user_id, btc = btc, eth = eth, banned = banned, ban_time = ban_time, history = history, count = user_count):
+        user = (user_id, btc, eth, banned, ban_time, history, count)
         await self.create_table()
         cur = self.conn.cursor()
         cur.execute(
-            "INSERT INTO users VALUES(?, ?, ?);", user
+            "INSERT INTO users VALUES(?, ?, ?, ?, ?, ?, ?);", user
         )
         self.conn.commit()
 
-    async def update_user_db(self, user_id, btc = btc, eth = eth):
-        user = (user_id, btc, eth)
+    async def update_user_db(self, user_id, btc = btc, eth = eth, banned = banned, ban_time = ban_time, history = history, count = user_count):
+        user = (user_id, btc, eth, banned, ban_time, history, count)
         cur = self.conn.cursor()
         cur.execute(
-            "REPLACE INTO users VALUES(?, ?, ?);", user
+            "REPLACE INTO users VALUES(?, ?, ?, ?, ?, ?, ?);", user
         )
         self.conn.commit()
 
@@ -65,11 +71,26 @@ class User():
                 user[2] = "0"
                 text = "ethereum отключен"
         print(user)
-        await self.update_user_db(user[0], user[1], user[2])
+        await self.update_user_db(*user)
 
         return text
 
-    async def ban(self, count=user_count):
+    async def change_history(self, history, user_id):
+        current_state = await self.read_table(user_id)
+        user = list(current_state)
+        user[5] = history
+        print(user[5])
+        await self.update_user_db(*user)
+
+    async def change_banned(self, banned, time, count, user_id):
+        current_state = await self.read_table(user_id)
+        user = list(current_state)
+        user[3] = "1" if banned else "0"
+        user[4] = time
+        user[6] = count
+        await self.update_user_db(*user)
+
+    async def ban(self, user_id, count=user_count):
         if count >= 5:
             self.banned = True
             self.current_time = time.time()
@@ -78,4 +99,5 @@ class User():
         self.ban_time = time.time() - self.current_time
         if self.ban_time >= 600:
             self.banned = False
+        await self.change_banned(self.banned, self.ban_time, self.user_count, user_id)
         return self.banned
